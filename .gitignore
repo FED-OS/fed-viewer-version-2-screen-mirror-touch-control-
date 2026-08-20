@@ -1,0 +1,10 @@
+dist/
+build/
+*.spec
+__pycache__/
+*.pyc
+ 
+# Android platform-tools — don't redistribute Google's binaries in your repo
+adb.exe
+AdbWinApi.dll
+AdbWinUsbApi.dll
