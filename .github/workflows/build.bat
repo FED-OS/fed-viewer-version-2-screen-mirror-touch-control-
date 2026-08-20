@@ -1,16 +1,42 @@
-@echo off
-REM Builds fed_viewer.exe as a single standalone file.
-REM Run this from the folder containing fed_viewer.py and adb_utils.py.
+name: Build Windows EXE
 
-pip install -r requirements.txt
-pip install pyinstaller
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:      # adds a manual "Run workflow" button in the Actions tab
+  release:
+    types: [ created ]    # also build when you publish a GitHub Release
 
-pyinstaller --noconfirm --onefile --windowed ^
-    --name fed_viewer ^
-    fed_viewer.py
+jobs:
+  build:
+    runs-on: windows-latest
 
-echo.
-echo Build complete. Find fed_viewer.exe in the dist\ folder.
-echo Remember: adb.exe (Android platform-tools) must be on PATH,
-echo or copied next to fed_viewer.exe, for the app to work.
-pause
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build exe
+        run: |
+          pyinstaller --noconfirm --onefile --windowed --name fed_viewer fed_viewer.py
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fed_viewer-windows
+          path: dist/fed_viewer.exe
+
+      - name: Attach to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/fed_viewer.exe
